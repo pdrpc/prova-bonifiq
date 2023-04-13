@@ -1,21 +1,28 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProvaPub.Interfaces;
 using ProvaPub.Models;
 using ProvaPub.Repository;
 
 namespace ProvaPub.Services
 {
-    public class CustomerService
+    public class CustomerService : IBaseService<CustomerList>
     {
-        TestDbContext _ctx;
+        private readonly TestDbContext _ctx;
 
         public CustomerService(TestDbContext ctx)
         {
             _ctx = ctx;
         }
 
-        public CustomerList ListCustomers(int page)
+        public async Task<CustomerList> GetList(int page)
         {
-            return new CustomerList() { HasNext = false, TotalCount = 10, Customers = _ctx.Customers.ToList() };
+            const int pageSize = 10;
+            if (page == 0) page = 1;
+            var totalCount = _ctx.Products.Count();
+            var hasNext = (page * pageSize) < totalCount;
+            var customers = await _ctx.Customers.Skip(pageSize * (page - 1)).Take(pageSize).ToListAsync();
+            var customersList = new CustomerList { Items = customers , TotalCount=totalCount,HasNext=hasNext};
+            return customersList;
         }
 
         public async Task<bool> CanPurchase(int customerId, decimal purchaseValue)
@@ -41,6 +48,5 @@ namespace ProvaPub.Services
 
             return true;
         }
-
     }
 }

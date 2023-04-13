@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ProvaPub.Interfaces;
 using ProvaPub.Models;
 using ProvaPub.Repository;
-using ProvaPub.Services;
 
 namespace ProvaPub.Controllers
 {
-	
-	[ApiController]
+
+    [ApiController]
 	[Route("[controller]")]
 	public class Parte2Controller :  ControllerBase
 	{
@@ -19,23 +19,27 @@ namespace ProvaPub.Controllers
 		/// 
 		/// </summary>
 		TestDbContext _ctx;
-		public Parte2Controller(TestDbContext ctx)
+        IBaseService<CustomerList> _cBaseService;
+        IBaseService<ProductList> _pBaseService;
+		public Parte2Controller(TestDbContext ctx, IBaseService<CustomerList> cBaseService, IBaseService<ProductList> pBaseService)
 		{
 			_ctx = ctx;
-		}
-	
-		[HttpGet("products")]
-		public ProductList ListProducts(int page)
-		{
-			var productService = new ProductService(_ctx);
-			return productService.ListProducts(page);
+            _cBaseService = cBaseService;
+			_pBaseService = pBaseService;
 		}
 
-		[HttpGet("customers")]
-		public CustomerList ListCustomers(int page)
-		{
-			var customerService = new CustomerService(_ctx);
-			return customerService.ListCustomers(page);
-		}
-	}
+        [HttpGet("products")]
+        public async Task<ProductList> ListProducts(int page)
+        {
+			var products = await _pBaseService.GetList(page);
+			return products;
+        }
+
+        [HttpGet("customers")]
+        public async Task<CustomerList> ListCustomers(int page)
+        {
+            var customers = await _cBaseService.GetList(page);
+            return customers;
+        }
+    }
 }
